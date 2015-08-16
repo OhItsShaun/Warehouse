@@ -103,8 +103,8 @@ foreach ($markdowns as $markdown) {
     $data = DataProcessor::process($data);     // Process our data to be filled in
     printDebug("    > Processed data");
 
-    $templateFile = Templater::process("../templates/" . $data["Template"] . ".md");    // Generate our template
-    printDebug("    > Processed template: " . $data["Template"] . ".md");
+    $templateFile = Templater::process("../templates/" . $data["Template"] . ".html");    // Generate our template
+    printDebug("    > Processed template: " . $data["Template"]);
 
     $data["Content"] = Regex::process($data["Content"]); // Now regex it all
     printDebug("    > Processed Regex");
