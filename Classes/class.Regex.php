@@ -20,10 +20,11 @@ class Regex {
         $thisClassReference = new ReflectionClass('Regex');
         $filePaths = glob(dirname(dirname($thisClassReference->getFileName())) . "/Extensions/Regex/regex.*.php");
 
-        foreach ($filePaths as $filePath) {
-            include_once($filePath);
-            if (preg_match("/regex\.(\w+)\.php/", basename($filePath), $matches)) {     // We extract out the class name from the file
-                printDebug("Applying Regex: " . $matches[1]);
+        CL::printDebug("Applying Regexes:", 1);
+        foreach ($filePaths as $filePath) {     // For every regex in the regex extensions
+            include_once($filePath);            // Include the file
+            if (preg_match("/regex\.(\w+)\.php/", basename($filePath), $matches)) {     // We extract out the class name from the file, and load that as the class
+                CL::printDebug("Regex: " . $matches[1], 2);
                 $rules = $matches[1]::getRegexs();                                      // We then get the regexes array (pattern => replace)
                 foreach ($rules as $regex => $replacement) {
                     if (is_callable ($matches[1] . "::" . $replacement)) {
