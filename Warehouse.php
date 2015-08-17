@@ -1,27 +1,8 @@
 <?php
 
-// Version RC-0.1-a
-define("DEBUG", false);  // If we're in debug then we don't care about overwriting certain data
-
+// Version RC-0.1-b
 function __autoload($class_name) {
     include 'Classes/class.' . $class_name . '.php';
-}
-
-/**
- * Parse a JSON file and, if specified, merge it with an existing array (useful for chowing down config.json's)
- * @param  string $filePath              The filepath of the JSON file to decode
- * @param  array [$mergeWith = array()]  An array to merge the results with
- * @return array The Parsed Json file
- */
-function getJSON ($filePath, $mergeWith = array()) {
-    if (file_exists($filePath)) {
-        $configJSON = file_get_contents($filePath);
-        $configDecode = json_decode($configJSON, true);
-        return array_merge($mergeWith, $configDecode);
-    }
-    else {
-        return array();
-    }
 }
 
 /**
@@ -42,11 +23,21 @@ function printDebug ($text) {
     }
 }
 
-if (!is_dir("source")) {    // Check if we have a source folder to work through, otherwise exit
+$defaults = Secretary::getJSON("Classes/config.json");
+define("DEBUG", $defaults["debug"]);  // If we're in debug then we don't care about overwriting certain data
+printDebug("Compiling in Debug Mode.");
+
+if (!is_dir('source')) {    // Check if we have a source folder to work through, otherwise exit
     println("There's no source folder? What site am I meant to generate?!");
+    println("Please create /source/ and write some content! :)");
     exit;
 }
 
+if (!is_dir('templates')) {    // Check if we have a source folder to work through, otherwise exit
+    println("There's no templates folder? What am I mean to put your content into?!");
+    println("Please create /templates/ and write some content! :)");
+    exit;
+}
 
 if (is_dir('upload')) {     // Overwrite the contents of an already existing upload folder
     if (!DEBUG) {           // We don't care about overwriting in debug mode, otherwise trigger a warning
@@ -63,7 +54,7 @@ if (is_dir('upload')) {     // Overwrite the contents of an already existing upl
     Secretary::deleteDirectory('upload');
 }
 mkdir('upload');
-printDebug("Created Upload Folder");
+printDebug("Created Upload Folder.");
 
 /*
  *  This is where all the magic happens.
@@ -73,6 +64,7 @@ chdir("source");
 
 $files = [];
 $markdowns = Secretary::rglob("*.md");
+
 printDebug("Found " . count($markdowns) . " Markdown Files");
 printDebug("----------------------------------------------");
 
@@ -83,11 +75,13 @@ foreach ($markdowns as $markdown) {
     $file = new File($markdown);
 
     $configPath = "";                      // Load in the content of the JSON file
-    $config = array();
+    $config = array("Template" => "Main");
     foreach ($file->pathQueue as $directory) {
         $configPath = ($configPath == "" ? "" : dirname($configPath) . "/") . $directory . "/config.json";
-        $config = getJSON($configPath, $config);
-        printDebug("    > Loaded Config at: " . $configPath);
+        if (file_exists($configPath)) {
+            $config = Secretary::getJSON($configPath, $config);
+            printDebug("    > Loaded Config at: " . $configPath);
+        }
     }
 
     if (array_key_exists("Content", $config)) {

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Our secretary, Kirk; a tiny class to handle common filepath related function
+ *  Our secretary, Kirkston; a tiny class to handle common file related functions
  */
 class Secretary {
 
@@ -44,6 +44,23 @@ class Secretary {
             $files = array_merge($files, Secretary::rglob($dir.'/'.basename($pattern), $flags));
         }
         return $files;
+    }
+
+    /**
+     * Parse a JSON file and, if specified, merge it with an existing array (useful for chowing down config.json's)
+     * @param  string $filePath              The filepath of the JSON file to decode
+     * @param  array [$mergeWith = array()]  An array to merge the results with
+     * @return array The Parsed Json file
+     */
+    public static function getJSON ($filePath, $mergeWith = array()) {
+        if (file_exists($filePath)) {
+            $configJSON = file_get_contents($filePath);
+            $configDecode = json_decode($configJSON, true);
+            return array_merge($mergeWith, $configDecode);
+        }
+        else {
+            return array();
+        }
     }
 
 }
