@@ -2,10 +2,6 @@
 
 class Navigationer implements DataHandler {
 
-    static function applyToFields() {
-        return array("Navigation", "Footer");
-    }
-
     static function process ($links, $fieldName, $data) {
         $text = "<ul>\n";
         foreach($links as $display => $slug) {

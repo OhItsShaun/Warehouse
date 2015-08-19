@@ -1,0 +1,9 @@
+{
+    "debug" : true,
+    "Template" : "Main",
+    "DataExtensions" : {
+        "Lister" : "tags",
+        "Navigationer" : "NavigationLinks, FooterLinks",
+        "TimeFormatter" : "posted"
+    }
+}

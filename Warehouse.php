@@ -5,7 +5,25 @@ function __autoload($class_name) {
     include 'Classes/class.' . $class_name . '.php';
 }
 
-$defaults = Secretary::getJSON("Classes/config.json");
+$defaults = array();
+if (file_exists("Classes/config.defaults.json")) {
+    CL::printDebug("Loading default Warehouse configuration", 0, Colour::Green);
+    $defaults = Secretary::getJSON("Classes/config.defaults.json");
+}
+else {
+    CL::printDebug("File: Classes/config.defaults.json was not found.", 0, Colour::Red);
+    CL::printDebug("Warehouse may not function correctly without this file.", 0, Colour::Red);
+    CL::printDebug("Please re-download from Github.", 0, Colour::Red);
+}
+
+if (file_exists("config.json")) {
+    CL::printDebug("Loading config file.", 0, Colour::Green);
+    $defaults = Secretary::getJSON("config.json", $defaults);
+}
+else {
+    CL::printDebug("No custom config file found. #BareBones");
+}
+
 define("DEBUG", $defaults["debug"]);  // If we're in debug then we don't care about overwriting certain data
 CL::printDebug("Compiling in Debug Mode.");
 
@@ -74,9 +92,16 @@ foreach ($markdowns as $markdown) {
 
     $data = array_merge($config, $file->meta);  // Renaming to make more semantic sense as we're now working with the "data"
     $data["Content"] = $file->contents;         // Pass in our file contents
-
-    $data = DataProcessor::process($data);     // Process our data to be filled in
-    CL::printDebug("Processed data", 1, Colour::Green);
+    $raw = array();
+    if (array_key_exists("DataExtensions", $defaults)) {
+        $tuple = DataProcessor::process($data, $defaults["DataExtensions"]);     // Process our data to be filled in
+        $data = $tuple["DATA"];
+        $raw = $tuple["RAW"];
+        CL::printDebug("Processed data", 1, Colour::Green);
+    }
+    else {
+        CL::printDebug("No data extensions declared", 1, Colour::Green);
+    }
 
     $templateFile = Templater::process("../templates/" . $data["Template"] . ".html");    // Generate our template
     CL::printDebug("Processed template: " . $data["Template"], 1, Colour::Green);
@@ -84,7 +109,7 @@ foreach ($markdowns as $markdown) {
     $data["Content"] = Regex::process($data["Content"]); // Now regex it all
     CL::printDebug("Processed Regex", 1, Colour::Green);
 
-    $processedFile = LTM::process($templateFile, $data);   // Fill in any conditions and optionals
+    $processedFile = LTM::process($templateFile, $data, $raw);   // Fill in any conditions and optionals
     CL::printDebug("Processed LTM", 1, Colour::Green);
 
     $file->contents = $processedFile;   // Store the complete processed file back into the file object

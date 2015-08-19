@@ -2,3 +2,4 @@ source/
 templates/
 upload/
 .DS_Store
+config.json
