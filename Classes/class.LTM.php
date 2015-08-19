@@ -57,7 +57,7 @@ class LTM {
                 if (array_key_exists($matches[1], $raw)) {
                         return $raw[$matches[1]];
                 }
-                CL::println("ERROR: Template requested ". $matches[1] ." but was not found. Please review file.", 0, Colour::Red);
+                CL::println("ERROR: Template requested ". $matches[1] ."::RAW but was not found. Please review file.", 0, Colour::Red);
                 return $matches[0];
         }, $text);
 

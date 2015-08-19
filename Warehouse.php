@@ -1,28 +1,11 @@
 <?php
 
-// Version RC-0.1-b
+// Version RC-0.2-a
 function __autoload($class_name) {
     include 'Classes/class.' . $class_name . '.php';
 }
 
-$defaults = array();
-if (file_exists("Classes/config.defaults.json")) {
-    CL::printDebug("Loading default Warehouse configuration", 0, Colour::Green);
-    $defaults = Secretary::getJSON("Classes/config.defaults.json");
-}
-else {
-    CL::printDebug("File: Classes/config.defaults.json was not found.", 0, Colour::Red);
-    CL::printDebug("Warehouse may not function correctly without this file.", 0, Colour::Red);
-    CL::printDebug("Please re-download from Github.", 0, Colour::Red);
-}
-
-if (file_exists("config.json")) {
-    CL::printDebug("Loading config file.", 0, Colour::Green);
-    $defaults = Secretary::getJSON("config.json", $defaults);
-}
-else {
-    CL::printDebug("No custom config file found. #BareBones");
-}
+$defaults = Secretary::initDefaults();
 
 define("DEBUG", $defaults["debug"]);  // If we're in debug then we don't care about overwriting certain data
 CL::printDebug("Compiling in Debug Mode.");
@@ -62,59 +45,11 @@ CL::printDebug("Created Upload Folder.", 0, Colour::Green);
  */
 chdir("source");
 
-$files = [];
 $markdowns = Secretary::rglob("*.md");
-
 CL::printDebug("Found " . count($markdowns) . " Markdown Files");
 CL::printDebug("----------------------------------------------");
 
-foreach ($markdowns as $markdown) {
-
-    CL::printDebug("Processing: " . $markdown);
-
-    $file = new File($markdown);
-
-    $configPath = "";                      // Load in the content of the JSON file
-    $config = array("Template" => $defaults["Template"]);
-    foreach ($file->pathQueue as $directory) {
-        $configPath = ($configPath == "" ? "" : dirname($configPath) . "/") . $directory . "/config.json";
-        if (file_exists($configPath)) {
-            $config = Secretary::getJSON($configPath, $config);
-            CL::printDebug("Loaded Config at: " . $configPath, 1, Colour::Green);
-        }
-    }
-
-    if (array_key_exists("Content", $config)) {
-        CL::println("WARNING: You've declared a field \"Content\" in a JSON file.", 0, Colour::Red);
-        CL::println("The \"Content\" keyword is reserved for storing the file contents in.", 0, Colour::Red);
-        CL::println("The value stored in the JSON file will be ignore.", 0, Colour::Red);
-    }
-
-    $data = array_merge($config, $file->meta);  // Renaming to make more semantic sense as we're now working with the "data"
-    $data["Content"] = $file->contents;         // Pass in our file contents
-    $raw = array();
-    if (array_key_exists("DataExtensions", $defaults)) {
-        $tuple = DataProcessor::process($data, $defaults["DataExtensions"]);     // Process our data to be filled in
-        $data = $tuple["DATA"];
-        $raw = $tuple["RAW"];
-        CL::printDebug("Processed data", 1, Colour::Green);
-    }
-    else {
-        CL::printDebug("No data extensions declared", 1, Colour::Green);
-    }
-
-    $templateFile = Templater::process("../templates/" . $data["Template"] . ".html");    // Generate our template
-    CL::printDebug("Processed template: " . $data["Template"], 1, Colour::Green);
-
-    $data["Content"] = Regex::process($data["Content"]); // Now regex it all
-    CL::printDebug("Processed Regex", 1, Colour::Green);
-
-    $processedFile = LTM::process($templateFile, $data, $raw);   // Fill in any conditions and optionals
-    CL::printDebug("Processed LTM", 1, Colour::Green);
-
-    $file->contents = $processedFile;   // Store the complete processed file back into the file object
-    array_push($files, $file);  // Add it to the array ready to be exported!
-}
+$files = FilesProcessor::process("", $defaults);
 
 chdir("../upload");
 

@@ -63,6 +63,30 @@ class Secretary {
         }
     }
 
+    /**
+     * Return configuration file by loading Classes/config.defaults.json and then config.json
+     */
+    public static function initDefaults () {
+        $defaults = array();
+        if (file_exists("Classes/config.defaults.json")) {
+            CL::printDebug("Loading default Warehouse configuration", 0, Colour::Green);
+            $defaults = self::getJSON("Classes/config.defaults.json");
+        }
+        else {
+            CL::printDebug("File: Classes/config.defaults.json was not found.", 0, Colour::Red);
+            CL::printDebug("Warehouse may not function correctly without this file.", 0, Colour::Red);
+            CL::printDebug("Please re-download from Github.", 0, Colour::Red);
+        }
+
+        if (file_exists("config.json")) {
+            CL::printDebug("Loading config file.", 0, Colour::Green);
+            $defaults = self::getJSON("config.json", $defaults);
+        }
+        else {
+            CL::printDebug("No custom config file found. #BareBones");
+        }
+        return $defaults;
+    }
 }
 
 ?>

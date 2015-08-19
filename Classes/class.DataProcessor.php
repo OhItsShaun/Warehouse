@@ -19,27 +19,25 @@ class DataProcessor {
          */
         $ref = new ReflectionClass('DataProcessor');
         $dataExtensionsPath = dirname(dirname($ref->getFileName())) . "/Extensions/Data/";
-        $raw = array();
-        foreach ($extensions as $extension => $appliesTo) {
-            $classFilePath = $dataExtensionsPath . "data." . $extension . ".php";
+
+        foreach ($extensions as $extension => $appliesTo) {     // For every extension that the config file wants us to apply to
+
+            $classFilePath = $dataExtensionsPath . "data." . $extension . ".php"; // Get the class filepath from the extension folder
             if(file_exists($classFilePath)) {
-                include_once($classFilePath);
-                $appliesTo = explode(",", $appliesTo);
-                foreach ($appliesTo as $applies) {
-                    $applies = trim($applies);
-                    if (array_key_exists($applies, $data)) {
-                        CL::printDebug("Applying " . $extension . " to: " . $applies, 1);
-                        $raw[$applies] = $data[$applies];
+                include_once($classFilePath);   // Include the class
+
+                $appliesTo = explode(",", $appliesTo);  // The "appliesTo" field specifies what @data should be processed, separated by ","
+                foreach ($appliesTo as $applies) {      // For every @data it should be applied to
+                    $applies = trim($applies);          // Trim any leading or trailing whitespace
+                    if (array_key_exists($applies, $data)) {        // If the @data actually exists
+                        CL::printDebug("Applying " . $extension . " to: " . $applies, 1);   // Notify we're applying the extension
                         $data[$applies] = $extension::process($data[$applies], $applies, $data);
                     }
                 }
             }
+            
         }
-
-        $tuple = array();
-        $tuple["RAW"] = $raw;
-        $tuple["DATA"] = $data;
-        return $tuple;
+        return $data;
     }
 
 }
