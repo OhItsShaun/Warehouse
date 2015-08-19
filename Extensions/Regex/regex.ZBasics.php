@@ -10,9 +10,7 @@ class ZBasics {
         return array(
             '/\*(.+?)\*/' => "<b>$1</b>",             // *bold*
             '/~(.+?)~/' => "<del>$1</del>",           // ~deleted content~
-            '/\[(.+?)\] \[(.+?)\]/' => "<a href=\"$2\">$1</a>",           // [visit google] [www.google.com]
-            '/(\w+) \[(.+?)\]/' => "<a href=\"$2\">$1</a>",           // google [www.gooogle.com]
-
+            '/\[(.+?)\] \((.+?)\)/' => "<a href=\"$2\">$1</a>",           // [visit google] (www.google.com)
         );
     }
 
