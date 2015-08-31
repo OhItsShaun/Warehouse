@@ -25,8 +25,6 @@ class DataProcessor {
             $classFilePath = $dataExtensionsPath . "data." . $extension . ".php"; // Get the class filepath from the extension folder
             if(file_exists($classFilePath)) {
                 include_once($classFilePath);   // Include the class
-
-                $appliesTo = explode(",", $appliesTo);  // The "appliesTo" field specifies what @data should be processed, separated by ","
                 foreach ($appliesTo as $applies) {      // For every @data it should be applied to
                     $applies = trim($applies);          // Trim any leading or trailing whitespace
                     if (array_key_exists($applies, $data)) {        // If the @data actually exists
@@ -35,7 +33,7 @@ class DataProcessor {
                     }
                 }
             }
-            
+
         }
         return $data;
     }
