@@ -2,40 +2,39 @@
 
 class FilesProcessor {
 
-    public static function process ($directory = "", $defaults) {
-        PipelineHooks::beforeProcessingFilesIn($directory);         // Hook for before this directory is processed
+    public static function process ($directory = "", $defaults, $config = array()) {
+        PipelineHooks::beforeProcessingFilesIn($directory, $defaults, $config);         // Hook for before this directory is processed
 
         $files = array();
         $markdowns = glob($directory . "*.md");
+
+        $configPath = $directory . "config.json";
+        if (file_exists($configPath)) {
+            CL::printDebug("Config File at: " . $configPath, 1);
+        }
+        $config = Secretary::getJSON($configPath, $config);
+        if (array_key_exists("Content", $config)) {
+            CL::println("WARNING: You've declared field \"Content\" in JSON file: " . $directory . "config.json", 0, Colour::Red);
+            CL::println("The \"Content\" keyword is reserved for storing the file contents in.", 0, Colour::Red);
+            CL::println("The value for \"Content\" stored in the JSON file will be ignored.", 0, Colour::Red);
+        }
+
         foreach ($markdowns as $markdown) {
             CL::printDebug("Processing: " . $markdown);
-
             $file = new File($markdown);
-            $config = array("Template" => $defaults["Template"]);
-            $configPath = "";                                           // Load in the content of the JSON file
-            foreach ($file->pathQueue as $pathDirectory) {
-                $configPath = ($configPath == "" ? "" : dirname($configPath) . "/") . $pathDirectory . "/config.json";
-                if (file_exists($configPath)) {
-                    $config = Secretary::getJSON($configPath, $config);
-                    CL::printDebug("Loaded Config at: " . $configPath, 1, Colour::Green);
-                }
-            }
 
-            if (array_key_exists("Content", $config)) {
-                CL::println("WARNING: You've declared a field \"Content\" in a JSON file.", 0, Colour::Red);
-                CL::println("The \"Content\" keyword is reserved for storing the file contents in.", 0, Colour::Red);
-                CL::println("The value stored in the JSON file will be ignore.", 0, Colour::Red);
-            }
-
+            // Set up our @data
             $data = array_merge($config, $file->meta);  // Renaming to make more semantic sense as we're now working with the "data"
             $data["Content"] = $file->contents;         // Pass in our file contents
             $raw = $data;                               // Store raw data before processing
+
+            // Process our data through data extensions
             if (array_key_exists("DataExtensions", $defaults)) {
                 $data = DataProcessor::process($data, $defaults["DataExtensions"]);     // Process our data to be filled in
                 CL::printDebug("Processed data", 1, Colour::Green);
             }
             else {
-                CL::printDebug("No data extensions declared", 1, Colour::Green);
+                CL::printDebug("No data extensions declared", 1);
             }
 
             $templateFile = Templater::process("../templates/" . $data["Template"] . ".html");    // Generate our template
@@ -51,11 +50,11 @@ class FilesProcessor {
             array_push($files, $file);  // Add it to the array ready to be exported!
         }
 
-        PipelineHooks::afterProcessingFilesIn($directory, $files);  // Hook for after this directory is processed - and lets pass some files!
+        PipelineHooks::afterProcessing($files, $directory, $defaults, $config);  // Hook for after this directory is processed - and lets pass some files!
 
         $directories = glob($directory . "*", GLOB_ONLYDIR);
         foreach ($directories as $directory) {
-            $newFiles = self::process($directory . "/", $defaults);
+            $newFiles = self::process($directory . "/", $defaults, $config);
             foreach ($newFiles as $newFile) {
                 array_push($files, $newFile);
             }

@@ -59,14 +59,16 @@ class Secretary {
             return array_merge($mergeWith, $configDecode);
         }
         else {
-            return array();
+            return $mergeWith;
         }
     }
 
     /**
+     * Set up Warehouse and load any defaults
      * Return configuration file by loading Classes/config.defaults.json and then config.json
      */
     public static function initDefaults () {
+        $_SESSION["exportFiles"] = array();
         $defaults = array();
         if (file_exists("Classes/config.defaults.json")) {
             CL::printDebug("Loading default Warehouse configuration", 0, Colour::Green);
@@ -87,6 +89,24 @@ class Secretary {
         }
         return $defaults;
     }
+
+    /**
+     * Add a file to be written into the upload folder
+     * @param String $data     The file contents that should be written
+     * @param String $filePath The filepath that the file will be written to in /upload/
+     */
+    public static function addExportFile ($data, $filePath) {
+        $_SESSION["exportFiles"][$filePath] = $data;
+    }
+
+    /**
+     * Get the files that are to be exported
+     * @return Array The files ["Filepath" => "File Contents"]
+     */
+    public static function getExportFiles () {
+        return $_SESSION["exportFiles"];
+    }
+
 }
 
 ?>

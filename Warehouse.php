@@ -49,7 +49,7 @@ $markdowns = Secretary::rglob("*.md");
 CL::printDebug("Found " . count($markdowns) . " Markdown Files");
 CL::printDebug("----------------------------------------------");
 
-$files = FilesProcessor::process("", $defaults);
+$files = FilesProcessor::process("", $defaults, array("Template" => $defaults["Template"]));
 
 chdir("../upload");
 
@@ -94,8 +94,18 @@ foreach ($remaining as $filepath) {
     chdir("../source"); // Move back to the source for the next possible file
 }
 
-CL::println("Done!", 0, Colour::Green);
+chdir("../upload");
 
+$remaining = Secretary::getExportFiles();
+CL::printDebug("Creating " . count($remaining) . " hook generated files in the upload folder.");
+foreach ($remaining as $filePath => $fileContents) {
+    if(!file_exists(dirname($filePath))) {          // If the directory path for the file doesn't already exist, recursively make it
+        mkdir(dirname($filePath), 0777, TRUE);
+    }
+    file_put_contents($filePath, $fileContents);   // We then put the file contents there as a clone
+}
+
+CL::println("Done!", 0, Colour::Green);
 // That wasn't so bad, right?
 
 ?>

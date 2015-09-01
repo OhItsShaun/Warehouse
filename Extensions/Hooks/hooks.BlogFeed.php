@@ -2,8 +2,12 @@
 
 class BlogFeed {
 
-    public static function postProcessingDirectory($directoryPath, $files, $config) {
-        $config["PostsPerPage"] = 10;
+    public static function beforeProcessingFilesIn ($directory, $config, $arguments) {
+        //to be set-up
+    }
+
+    public static function afterProcessing ($files, $directory, $config, $arguments) {
+        //to be set-up
     }
 
 }
