@@ -34,4 +34,7 @@ class Colour {
     const White = "\033[0m";
     const Red = "\033[31m";
     const Green = "\033[32m";
+    const Blue = "\033[34m";
+    const Pink = "\033[35m";
+    const Aqua = "\033[36m";
 }

@@ -7,7 +7,7 @@ class PipelineHooks {
         foreach ($defaults["Hooks"] as $appliesTo => $hookExtensions) {        // Cycle through the paths that apply to
             if ($appliesTo == $directory) {            // If the path matches the current directory
                 foreach ($hookExtensions as $hookExtension => $arguments) {   // For every hook for this directory
-                    CL::printDebug($hookExtension . " before-hook called upon: " . $directory, 0, Colour::White);
+                    CL::printDebug($hookExtension . " before-hook called upon: " . $directory, 0, Colour::Blue);
                     include_once(self::getHookPath($hookExtension));
                     $hookExtension::beforeProcessingFilesIn($directory, $config, $arguments);
                 }
@@ -20,7 +20,7 @@ class PipelineHooks {
         foreach ($defaults["Hooks"] as $appliesTo => $hookExtensions) {        // Cycle through the paths that apply to
             if ($appliesTo == $directory) {            // If the path matches the current directory
                 foreach ($hookExtensions as $hookExtension => $arguments) {   // For every hook for this directory
-                    CL::printDebug($hookExtension . " after-hook called upon: " . $directory, 0, Colour::White);
+                    CL::printDebug($hookExtension . " after-hook called upon: " . $directory, 0, Colour::Blue);
                     include_once(self::getHookPath($hookExtension));
                     $hookExtension::afterProcessing($files, $directory, $config, $arguments);
                 }

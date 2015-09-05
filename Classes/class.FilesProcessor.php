@@ -5,9 +5,6 @@ class FilesProcessor {
     public static function process ($directory = "", $defaults, $config = array()) {
         PipelineHooks::beforeProcessingFilesIn($directory, $defaults, $config);         // Hook for before this directory is processed
 
-        $files = array();
-        $markdowns = glob($directory . "*.md");
-
         $configPath = $directory . "config.json";
         if (file_exists($configPath)) {
             CL::printDebug("Config File at: " . $configPath, 1);
@@ -19,12 +16,15 @@ class FilesProcessor {
             CL::println("The value for \"Content\" stored in the JSON file will be ignored.", 0, Colour::Red);
         }
 
+        $files = array();
+
+        $markdowns = glob($directory . "*.md");
         foreach ($markdowns as $markdown) {
             CL::printDebug("Processing: " . $markdown);
             $file = new File($markdown);
 
             // Set up our @data
-            $data = array_merge($config, $file->meta);  // Renaming to make more semantic sense as we're now working with the "data"
+            $data = array_merge($config, $file->data);  // Renaming to make more semantic sense as we're now working with the "data"
             $data["Content"] = $file->contents;         // Pass in our file contents
             $raw = $data;                               // Store raw data before processing
 
@@ -37,11 +37,11 @@ class FilesProcessor {
                 CL::printDebug("No data extensions declared", 1);
             }
 
-            $templateFile = Templater::process("../templates/" . $data["Template"] . ".html");    // Generate our template
-            CL::printDebug("Processed template: " . $data["Template"], 1, Colour::Green);
-
             $data["Content"] = Regex::process($data["Content"]); // Now regex it all
             CL::printDebug("Processed Regex", 1, Colour::Green);
+
+            $templateFile = Templater::process($data["Template"]);    // Generate our template
+            CL::printDebug("Processed template: " . $data["Template"], 1, Colour::Green);
 
             $processedFile = LTM::process($templateFile, $data, $raw);   // Fill in any conditions and optionals
             CL::printDebug("Processed LTM", 1, Colour::Green);

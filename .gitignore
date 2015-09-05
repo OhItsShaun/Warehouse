@@ -4,3 +4,4 @@ upload/
 .DS_Store
 config.json
 Test.php
+Tests/

@@ -1,6 +1,6 @@
 <?php
 
-// Version RC-0.2-b
+// Version RC-0.2-c
 function __autoload($class_name) {
     include 'Classes/class.' . $class_name . '.php';
 }
